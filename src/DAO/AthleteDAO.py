@@ -1,6 +1,6 @@
 import psycopg2
-from src.config.dbconfig import pg_config
-from src.models.AthleteModel import Athlete
+from config.dbconfig import pg_config
+from models.AthleteModel import Athlete
 
 class AthleteDAO:
     def __init__(self):
@@ -48,3 +48,30 @@ class AthleteDAO:
             )
             return athlete
         return None
+
+    def createAthlete(self, athlete):
+        cursor = self.conn.cursor()
+        query = "INSERT INTO athletes (name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s) RETURNING id"
+        cursor.execute(query, (athlete.name, athlete.age, athlete.gender, athlete.height, athlete.weight))
+        athlete_id = cursor.fetchone()[0]
+        self.conn.commit()
+        cursor.close()
+        return athlete_id
+
+    def updateAthlete(self, athlete):
+        cursor = self.conn.cursor()
+        query = "UPDATE athletes SET name = %s, age = %s, gender = %s, height = %s, weight = %s WHERE id = %s"
+        cursor.execute(query, (athlete.name, athlete.age, athlete.gender, athlete.height, athlete.weight, athlete.id))
+        rows_affected = cursor.rowcount
+        self.conn.commit()
+        cursor.close()
+        return rows_affected > 0
+
+    def deleteAthlete(self, athlete_id):
+        cursor = self.conn.cursor()
+        query = "DELETE FROM athletes WHERE id = %s"
+        cursor.execute(query, (athlete_id,))
+        rows_affected = cursor.rowcount
+        self.conn.commit()
+        cursor.close()
+        return rows_affected > 0
